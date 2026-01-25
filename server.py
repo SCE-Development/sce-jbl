@@ -40,18 +40,18 @@ def root():
 
 
 @app.post('/play')
-def play_song(request: PlayRequest):
+async def play_song(request: PlayRequest):
     logger.info(f"Received play request for URL: {request.url}")
     download_video(request.url)
     return {'message': 'Song added to queue'}
 
 
-@app.post('/skip')
+@app.get('/skip')
 def skip_song():
     pass
 
 
-@app.post('/stop')
+@app.get('/stop')
 def stop_song():
     pass
 
@@ -61,9 +61,9 @@ def download_video(url: str):
     if video.age_restricted:
         raise HTTPException(status_code=400, detail='Age restricted video')
     
-    os.makedirs('videos', exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
     stream = video.streams.filter(only_audio=True).first()
-    mp4_path = stream.download(output_path='videos', filename=f'{uuid.uuid4()}.mp4')
+    mp4_path = stream.download(output_path=args.output_dir, filename=f'{uuid.uuid4()}.mp4')
 
     # convert to mp3
     mp3_path = mp4_path.replace('.mp4', '.mp3')
@@ -78,8 +78,8 @@ def send_songs_to_jbl():
         if song_queue:
             with queue_lock:
                 song_path = song_queue.pop(0)
-        logger.info(f"Sending song to JBL: {song_path}")
-        # send song to JBL speaker using Linux command line
+            logger.info(f"Sending song to JBL: {song_path}")
+            # send song to JBL speaker using Linux command line
 
 
 @app.on_event('startup')

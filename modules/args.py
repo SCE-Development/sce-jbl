@@ -13,4 +13,9 @@ def get_args():
         type=int,
         default=6969,
     )
+    parser.add_argument(
+        '--output-dir',
+        help='Directory to save downloaded songs',
+        default='videos',
+    )
     return parser.parse_args()
