@@ -1,7 +1,7 @@
 import os
 import subprocess
 import uuid
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -13,8 +13,9 @@ from modules.args import get_args
 from modules.logger import logger
 
 
-SONG_QUEUE = []
-QUEUE_LOCK = Lock()
+song_queue = []
+queue_lock = Lock()
+jbl_event = Event()
 
 
 app = FastAPI()
@@ -68,9 +69,26 @@ def download_video(url: str):
     mp3_path = mp4_path.replace('.mp4', '.mp3')
     subprocess.run(['ffmpeg', '-i', mp4_path, mp3_path])
     os.remove(mp4_path)
-    SONG_QUEUE.append(mp3_path)
+    with queue_lock:
+        song_queue.append(mp3_path)
     return mp3_path
 
+def send_songs_to_jbl():
+    while not jbl_event.is_set():
+        if song_queue:
+            with queue_lock:
+                song_path = song_queue.pop(0)
+        logger.info(f"Sending song to JBL: {song_path}")
+        # send song to JBL speaker using Linux command line
+
+
+@app.on_event('startup')
+def start_jbl_thread():
+    Thread(target=send_songs_to_jbl, daemon=True).start()
+
+@app.on_event('shutdown')
+def stop_jbl_thread():
+    jbl_event.set()
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', host=args.host, port=args.port, reload=True)
+    uvicorn.run('server:app', host=args.host, port=args.port, reload=True)
