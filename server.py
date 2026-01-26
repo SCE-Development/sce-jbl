@@ -2,6 +2,7 @@ import os
 import subprocess
 import uuid
 from threading import Thread, Lock, Event
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -18,7 +19,15 @@ queue_lock = Lock()
 jbl_event = Event()
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan():
+    thread = Thread(target=send_songs_to_jbl, daemon=True)
+    thread.start()
+    yield
+    jbl_event.set()
+    thread.join()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -80,15 +89,6 @@ def send_songs_to_jbl():
                 song_path = song_queue.pop(0)
             logger.info(f"Sending song to JBL: {song_path}")
             # send song to JBL speaker using Linux command line
-
-
-@app.on_event('startup')
-def start_jbl_thread():
-    Thread(target=send_songs_to_jbl, daemon=True).start()
-
-@app.on_event('shutdown')
-def stop_jbl_thread():
-    jbl_event.set()
 
 if __name__ == '__main__':
     uvicorn.run('server:app', host=args.host, port=args.port, reload=True)
