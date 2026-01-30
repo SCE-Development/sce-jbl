@@ -75,7 +75,7 @@ def stop():
         return {'message': 'Playback stopped and queue cleared'}
 
 
-def download_video(url: str):
+def download_video(url: str) -> None:
     '''Downloads a YouTube video as mp3 and adds it to the song queue.''' # at some point try to figure out how to do this without PyTube -> Spotify integration?
     video = YouTube(url)
     if video.age_restricted:
@@ -91,8 +91,7 @@ def download_video(url: str):
     os.remove(mp4_path)
     with queue_lock:
         song_queue.append(mp3_path)
-    return mp3_path
-
+    logger.info(f'Downloaded and queued song: {mp3_path}')
 
 def connect_to_jbl():
     '''Connect to the JBL using bluetooth command line tools'''
