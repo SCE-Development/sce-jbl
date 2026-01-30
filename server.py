@@ -21,11 +21,17 @@ jbl_event = Event()
 
 @asynccontextmanager
 async def lifespan():
+    try:
+        connect_to_jbl()
+    except Exception as e:
+        logger.error(f'Failed to connect to JBL speaker: {e}')
+        raise
     thread = Thread(target=send_songs_to_jbl, daemon=True)
     thread.start()
     yield
     jbl_event.set()
     thread.join()
+    disconnect_jbl()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -49,8 +55,8 @@ def root():
 
 
 @app.post('/play')
-async def play_song(request: PlayRequest):
-    logger.info(f"Received play request for URL: {request.url}")
+def play_song(request: PlayRequest):
+    logger.info(f'Received play request for URL: {request.url}')
     download_video(request.url)
     return {'message': 'Song added to queue'}
 
@@ -61,11 +67,16 @@ def skip_song():
 
 
 @app.get('/stop')
-def stop_song():
-    pass
+def stop():
+    if song_queue:
+        with queue_lock:
+            song_queue.clear()
+        logger.info('Stopped playback and cleared the queue')
+        return {'message': 'Playback stopped and queue cleared'}
 
 
 def download_video(url: str):
+    '''Downloads a YouTube video as mp3 and adds it to the song queue.''' # at some point try to figure out how to do this without PyTube -> Spotify integration?
     video = YouTube(url)
     if video.age_restricted:
         raise HTTPException(status_code=400, detail='Age restricted video')
@@ -82,12 +93,24 @@ def download_video(url: str):
         song_queue.append(mp3_path)
     return mp3_path
 
+
+def connect_to_jbl():
+    '''Connect to the JBL using bluetooth command line tools'''
+    pass
+
+
+def disconnect_jbl():
+    '''Disconnect from the JBL speaker'''
+    pass
+
+
 def send_songs_to_jbl():
+    '''Threaded function to send songs from the queue to the JBL speaker'''
     while not jbl_event.is_set():
         if song_queue:
             with queue_lock:
                 song_path = song_queue.pop(0)
-            logger.info(f"Sending song to JBL: {song_path}")
+            logger.info(f'Sending song to JBL: {song_path}')
             # send song to JBL speaker using Linux command line
 
 if __name__ == '__main__':
