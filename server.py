@@ -126,6 +126,7 @@ def set_audio_output_to_jbl():
 def disconnect_jbl():
     '''Disconnect from the JBL speaker'''
     subprocess.run(['bluetoothctl', 'disconnect', args.jbl_mac_address], check=True)
+    subprocess.run(['wpctl', 'set-default', '@DEFAULT_AUDIO_SINK@'], check=True)
     logger.info('Disconnected from JBL speaker')
 
 def send_songs_to_jbl():
