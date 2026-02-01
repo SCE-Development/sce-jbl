@@ -3,6 +3,7 @@ import subprocess
 import uuid
 import threading
 from contextlib import asynccontextmanager
+from collections import deque
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -14,7 +15,7 @@ from modules.args import get_args
 from modules.logger import logger
 
 
-song_queue = []
+song_queue = deque()
 queue_lock = threading.Lock()
 jbl_event = threading.Event()
 
@@ -129,7 +130,7 @@ def send_songs_to_jbl():
     while not jbl_event.is_set():
         if song_queue:
             with queue_lock:
-                song_path = song_queue.pop(0)
+                song_path = song_queue.popleft()
             logger.info(f'Sending song to JBL: {song_path}')
             # send song to JBL speaker using Linux command line
 
