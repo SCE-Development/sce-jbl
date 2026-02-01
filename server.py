@@ -94,8 +94,6 @@ def download_video(url: str) -> None:
     logger.info(f'Downloaded and queued song: {mp3_path}')
 
 def connect_to_jbl():
-    '''Connect to the JBL using bluetooth command line tools'''
-
     # first connect to the JBL speaker
     subprocess.run(['bluetoothctl', 'connect', args.jbl_mac_address], check=True)
 
@@ -106,7 +104,6 @@ def connect_to_jbl():
     set_audio_output_to_jbl()
 
 def set_audio_output_to_jbl():
-    '''Set the system audio output to the JBL speaker'''
     status = subprocess.run(['wpctl', 'status'], capture_output=True, text=True).stdout
     sink_ids = [
         line.split()[0].strip()
@@ -124,13 +121,11 @@ def set_audio_output_to_jbl():
     logger.info('JBL speaker not found among audio sinks')
 
 def disconnect_jbl():
-    '''Disconnect from the JBL speaker'''
     subprocess.run(['bluetoothctl', 'disconnect', args.jbl_mac_address], check=True)
     subprocess.run(['wpctl', 'set-default', '@DEFAULT_AUDIO_SINK@'], check=True)
     logger.info('Disconnected from JBL speaker')
 
 def send_songs_to_jbl():
-    '''Threaded function to send songs from the queue to the JBL speaker'''
     while not jbl_event.is_set():
         if song_queue:
             with queue_lock:
