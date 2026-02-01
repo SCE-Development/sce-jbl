@@ -31,7 +31,10 @@ async def lifespan():
     yield
     jbl_event.set()
     thread.join()
-    disconnect_jbl()
+    try:
+        disconnect_jbl()
+    except Exception as e:
+        logger.error(f'Failed to disconnect from JBL speaker: {e}')
 
 app = FastAPI(lifespan=lifespan)
 
@@ -122,7 +125,8 @@ def set_audio_output_to_jbl():
 
 def disconnect_jbl():
     '''Disconnect from the JBL speaker'''
-    pass
+    subprocess.run(['bluetoothctl', 'disconnect', args.jbl_mac_address], check=True)
+    logger.info('Disconnected from JBL speaker')
 
 def send_songs_to_jbl():
     '''Threaded function to send songs from the queue to the JBL speaker'''
