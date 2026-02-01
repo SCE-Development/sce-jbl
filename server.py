@@ -1,7 +1,7 @@
 import os
 import subprocess
 import uuid
-from threading import Thread, Lock, Event
+import threading
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -15,8 +15,8 @@ from modules.logger import logger
 
 
 song_queue = []
-queue_lock = Lock()
-jbl_event = Event()
+queue_lock = threading.Lock()
+jbl_event = threading.Event()
 
 
 @asynccontextmanager
@@ -26,7 +26,7 @@ async def lifespan():
     except Exception as e:
         logger.error(f'Failed to connect to JBL speaker: {e}')
         raise
-    thread = Thread(target=send_songs_to_jbl, daemon=True)
+    thread = threading.Thread(target=send_songs_to_jbl, daemon=True)
     thread.start()
     yield
     jbl_event.set()
