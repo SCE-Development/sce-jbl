@@ -53,18 +53,15 @@ class PlayRequest(BaseModel):
 def root():
     return {'message': 'sce jbl is running'}
 
-
 @app.post('/play')
 def play_song(request: PlayRequest):
     logger.info(f'Received play request for URL: {request.url}')
     download_video(request.url)
     return {'message': 'Song added to queue'}
 
-
 @app.get('/skip')
 def skip_song():
     pass
-
 
 @app.get('/stop')
 def stop():
@@ -95,13 +92,37 @@ def download_video(url: str) -> None:
 
 def connect_to_jbl():
     '''Connect to the JBL using bluetooth command line tools'''
-    pass
 
+    # first connect to the JBL speaker
+    subprocess.run(['bluetoothctl', 'connect', args.jbl_mac_address], check=True)
+
+    # now trust the device
+    subprocess.run(['bluetoothctl', 'trust', args.jbl_mac_address], check=True)
+
+    # set the audio output to be the JBL speaker
+    set_audio_output_to_jbl()
+
+def set_audio_output_to_jbl():
+    '''Set the system audio output to the JBL speaker'''
+    status = subprocess.run(['wpctl', 'status'], capture_output=True, text=True).stdout
+    sink_ids = [
+        line.split()[0].strip()
+        for line in status.splitlines()
+        if 'Audio/Sink' in line
+    ]
+
+    for sink_id in sink_ids:
+        info = subprocess.run(['wpctl', 'info', sink_id], capture_output=True, text=True).stdout
+        if args.jbl_mac_address.replace(':', '_') in info:
+            subprocess.run(['wpctl', 'set-default', sink_id], check=True)
+            logger.info(f'Set audio output to JBL speaker with sink ID: {sink_id}')
+            return
+    
+    logger.info('JBL speaker not found among audio sinks')
 
 def disconnect_jbl():
     '''Disconnect from the JBL speaker'''
     pass
-
 
 def send_songs_to_jbl():
     '''Threaded function to send songs from the queue to the JBL speaker'''
