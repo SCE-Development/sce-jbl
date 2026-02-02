@@ -98,7 +98,7 @@ def on_end(event):
     try:
         event_str = str(event)
     
-        if "reason" in event_str:
+        if 'reason' in event_str:
             start = event_str.find("'reason': b'") + len("'reason': b'")
             end = event_str.find("'", start)
             reason = event_str[start:end]
@@ -106,7 +106,7 @@ def on_end(event):
                 play_next_song()
 
     except Exception as e:
-        logger.error(f"Failed to handle event: {e}")
+        logger.error(f'Failed to handle event: {e}')
 
 
 def connect_to_jbl():
