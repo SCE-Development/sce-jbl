@@ -1,4 +1,5 @@
 fastapi
 uvicorn
 pydantic
-pytubefix
+python-mpv
+yt-dlp
