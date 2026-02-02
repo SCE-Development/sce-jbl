@@ -3,3 +3,4 @@ uvicorn
 pydantic
 python-mpv
 yt-dlp
+prometheus_client
