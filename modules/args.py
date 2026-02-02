@@ -14,11 +14,6 @@ def get_args():
         default=6969,
     )
     parser.add_argument(
-        '--output-dir',
-        help='Directory to save downloaded songs',
-        default='videos',
-    )
-    parser.add_argument(
         '--jbl-mac-address',
         help='MAC address of the JBL speaker',
         required=True,
