@@ -5,137 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCE JBL Player</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: Arial, sans-serif;
             padding: 20px;
-        }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
-            width: 100%;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .input-group {
-            margin-bottom: 20px;
+            max-width: 600px;
         }
         input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
+            padding: 8px;
             margin-bottom: 10px;
+            font-size: 14px;
         }
         button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 10px 15px;
+            margin-right: 5px;
+            margin-bottom: 5px;
             cursor: pointer;
-            transition: all 0.3s;
         }
-        .btn-play {
-            background: #667eea;
-            color: white;
-        }
-        .btn-play:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-        .btn-queue {
-            background: #4facfe;
-            color: white;
-        }
-        .btn-queue:hover {
-            background: #3a9be8;
-            transform: translateY(-2px);
-        }
-        .btn-skip {
-            background: #f093fb;
-            color: white;
-        }
-        .btn-skip:hover {
-            background: #e082ea;
-            transform: translateY(-2px);
-        }
-        .btn-stop {
-            background: #fa709a;
-            color: white;
-        }
-        .btn-stop:hover {
-            background: #e9608a;
-            transform: translateY(-2px);
-        }
-        .message {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
+        #message {
+            margin-top: 10px;
+            padding: 10px;
             display: none;
         }
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .success {
+            background: lightgreen;
         }
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .error {
+            background: lightcoral;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎵 SCE JBL Player</h1>
+    <div>
+        <h1>SCE JBL Player</h1>
         
-        <div class="input-group">
-            <input 
-                type="text" 
-                id="urlInput" 
-                placeholder="Enter YouTube URL..."
-                value="">
+        <input type="text" id="urlInput" placeholder="Enter YouTube URL...">
+        
+        <div>
+            <button onclick="playNow()">Play Now</button>
+            <button onclick="addToQueue()">Add To Queue</button>
+            <button onclick="skipSong()">Skip</button>
+            <button onclick="stopPlayback()">Stop</button>
         </div>
         
-        <div class="button-group">
-            <button class="btn-play" onclick="playNow()">Play Now</button>
-            <button class="btn-queue" onclick="addToQueue()">Add To Queue</button>
-        </div>
-        
-        <div class="button-group">
-            <button class="btn-skip" onclick="skipSong()">Skip</button>
-            <button class="btn-stop" onclick="stopPlayback()">Stop</button>
-        </div>
-        
-        <div id="message" class="message"></div>
+        <div id="message"></div>
     </div>
 
     <script>
@@ -144,7 +57,7 @@
         function showMessage(text, isError = false) {
             const messageEl = document.getElementById('message');
             messageEl.textContent = text;
-            messageEl.className = 'message ' + (isError ? 'error' : 'success');
+            messageEl.className = isError ? 'error' : 'success';
             messageEl.style.display = 'block';
             
             setTimeout(() => {
