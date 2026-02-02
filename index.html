@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCE JBL Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-play {
+            background: #667eea;
+            color: white;
+        }
+        .btn-play:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-queue {
+            background: #4facfe;
+            color: white;
+        }
+        .btn-queue:hover {
+            background: #3a9be8;
+            transform: translateY(-2px);
+        }
+        .btn-skip {
+            background: #f093fb;
+            color: white;
+        }
+        .btn-skip:hover {
+            background: #e082ea;
+            transform: translateY(-2px);
+        }
+        .btn-stop {
+            background: #fa709a;
+            color: white;
+        }
+        .btn-stop:hover {
+            background: #e9608a;
+            transform: translateY(-2px);
+        }
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 SCE JBL Player</h1>
+        
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="urlInput" 
+                placeholder="Enter YouTube URL..."
+                value="">
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-play" onclick="playNow()">Play Now</button>
+            <button class="btn-queue" onclick="addToQueue()">Add To Queue</button>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-skip" onclick="skipSong()">Skip</button>
+            <button class="btn-stop" onclick="stopPlayback()">Stop</button>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:6969';
+
+        function showMessage(text, isError = false) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + (isError ? 'error' : 'success');
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+
+        async function playNow() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                showMessage('Please enter a YouTube URL', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/queue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        play_immediately: true
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showMessage(data.message || 'Playing now!');
+                document.getElementById('urlInput').value = '';
+                
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, true);
+            }
+        }
+
+        async function addToQueue() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                showMessage('Please enter a YouTube URL', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/queue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        play_immediately: false
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showMessage(data.message || 'Song queued successfully!');
+                document.getElementById('urlInput').value = '';
+                
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, true);
+            }
+        }
+
+        async function skipSong() {
+            try {
+                const response = await fetch(`${API_URL}/skip`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showMessage(data.message || 'Skipped to next song!');
+                
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, true);
+            }
+        }
+
+        async function stopPlayback() {
+            try {
+                const response = await fetch(`${API_URL}/stop`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                showMessage(data.message || 'Playback stopped!');
+                
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, true);
+            }
+        }
+
+        // Allow pressing Enter to play now
+        document.getElementById('urlInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                playNow();
+            }
+        });
+    </script>
+</body>
+</html>
