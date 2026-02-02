@@ -25,7 +25,7 @@ player = MPV(
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_: FastAPI):
     try:
         connect_to_jbl()
     except Exception as e:
@@ -104,7 +104,7 @@ def on_end(event):
             reason = event_str[start:end]
             if reason == 'eof':
                 play_next_song()
-                
+
     except Exception as e:
         logger.error(f"Failed to handle event: {e}")
 
