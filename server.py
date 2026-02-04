@@ -135,11 +135,8 @@ def on_end(event):
 
 
 def connect_to_jbl():
-    # first connect to the JBL speaker
     subprocess.run(['bluetoothctl', 'connect', args.jbl_mac_address], check=True)
-
-    # now trust the device
-    subprocess.run(['bluetoothctl', 'trust', args.jbl_mac_address], check=True)
+    logger.info('Connected to JBL speaker')
 
 
 def disconnect_jbl():
