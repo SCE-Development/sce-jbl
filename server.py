@@ -141,31 +141,9 @@ def connect_to_jbl():
     # now trust the device
     subprocess.run(['bluetoothctl', 'trust', args.jbl_mac_address], check=True)
 
-    # set the audio output to be the JBL speaker
-    set_audio_output_to_jbl()
-
-
-def set_audio_output_to_jbl():
-    status = subprocess.run(['wpctl', 'status'], capture_output=True, text=True).stdout
-    sink_ids = [
-        line.split()[0].strip()
-        for line in status.splitlines()
-        if 'Audio/Sink' in line
-    ]
-
-    for sink_id in sink_ids:
-        info = subprocess.run(['wpctl', 'info', sink_id], capture_output=True, text=True).stdout
-        if args.jbl_mac_address.replace(':', '_') in info:
-            subprocess.run(['wpctl', 'set-default', sink_id], check=True)
-            logger.info(f'Set audio output to JBL speaker with sink ID: {sink_id}')
-            return
-    
-    logger.info('JBL speaker not found among audio sinks')
-
 
 def disconnect_jbl():
     subprocess.run(['bluetoothctl', 'disconnect', args.jbl_mac_address], check=True)
-    subprocess.run(['wpctl', 'set-default', '@DEFAULT_AUDIO_SINK@'], check=True)
     logger.info('Disconnected from JBL speaker')
 
 
